@@ -1,0 +1,23 @@
+{
+  "name": "radio-manager",
+  "version": "1.0.0",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "dependencies": {
+    "express": "*",
+    "ytdl-core": "*",
+    "fluent-ffmpeg": "*",
+    "dotenv": "*",
+    "cors": "*",
+    "icecast-source": "*"
+  },
+  "devDependencies": {
+    "nodemon": "*"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

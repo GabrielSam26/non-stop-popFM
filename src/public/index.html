@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">Radio Manager</h1>
+        
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Add Song</h2>
+            <form id="addSongForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">YouTube URL</label>
+                    <input type="text" id="youtubeUrl" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                        Add to Playlist
+                    </button>
+                    <button type="button" id="clearPlaylist" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">
+                        Clear Playlist
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Current Playlist</h2>
+            <div id="playlist" class="space-y-2"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '';  // Empty for same domain
+
+        async function addSong(url) {
+            try {
+                const response = await fetch(`${API_URL}/api/add-song`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url })
+                });
+                const data = await response.json();
+                updatePlaylist();
+                return data;
+            } catch (error) {
+                console.error('Error adding song:', error);
+                alert('Error adding song. Please try again.');
+            }
+        }
+
+        async function clearPlaylist() {
+            try {
+                await fetch(`${API_URL}/api/clear-playlist`, {
+                    method: 'POST'
+                });
+                updatePlaylist();
+            } catch (error) {
+                console.error('Error clearing playlist:', error);
+                alert('Error clearing playlist. Please try again.');
+            }
+        }
+
+        async function getPlaylist() {
+            try {
+                const response = await fetch(`${API_URL}/api/playlist`);
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error getting playlist:', error);
+                return [];
+            }
+        }
+
+        async function updatePlaylist() {
+            const playlist = await getPlaylist();
+            const playlistElement = document.getElementById('playlist');
+            
+            if (playlist.length === 0) {
+                playlistElement.innerHTML = '<p class="text-gray-500">No songs in playlist</p>';
+                return;
+            }
+
+            playlistElement.innerHTML = playlist.map((song, index) => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                    <div>
+                        <span class="font-medium">${index + 1}. ${song.title}</span>
+                        <span class="text-sm text-gray-500 ml-2">
+                            (${Math.floor(song.duration / 60)}:${String(song.duration % 60).padStart(2, '0')})
+                        </span>
+                    </div>
+                    <span class="text-sm text-gray-500">
+                        Added: ${new Date(song.addedAt).toLocaleTimeString()}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('addSongForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = document.getElementById('youtubeUrl').value;
+            await addSong(url);
+            document.getElementById('youtubeUrl').value = '';
+        });
+
+        document.getElementById('clearPlaylist').addEventListener('click', clearPlaylist);
+
+        // Update playlist initially and every 5 seconds
+        updatePlaylist();
+        setInterval(updatePlaylist, 5000);
+    </script>
+</body>
+</html>
